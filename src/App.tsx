@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { ILIST, Errors } from "./types";
+import { ILIST } from "./types";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Alert from "./components/Alert";
 import List from "./components/List";
 
 /**
