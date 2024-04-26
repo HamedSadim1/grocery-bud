@@ -30,11 +30,11 @@ function App() {
   const [edit, setEdit] = useState<boolean>(false);
   const [id, setId] = useState<string>("");
 
-  const [alert, setAlert] = useState<Errors>({
-    show: false,
-    msg: "",
-    type: "",
-  });
+  // const [alert, setAlert] = useState<Errors>({
+  //   show: false,
+  //   msg: "",
+  //   type: "",
+  // });
 
   // useEffect hook is used to perform side effects in functional components.
   // It takes a callback function as the first argument and an array of dependencies as the second argument.
