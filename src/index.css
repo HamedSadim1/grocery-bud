@@ -1,4 +1,80 @@
 /*
+GROCERY-BUD STYLES — Documentation Comment
+
+File
+- /src/index.css
+- Purpose: Core styling for the Grocery Bud UI: design tokens (CSS variables), global resets & typography, layout helpers, and component styles for the grocery list form and items.
+
+Top-level structure
+1) Variables (:root)
+  - Color palette: --clr-primary-1 .. --clr-primary-10 (primary shades), --clr-grey-1 .. --clr-grey-10 (grays), --clr-white, --clr-black, red/green variants.
+  - Common tokens: --transition, --spacing, --radius, --light-shadow, --dark-shadow, --max-width, --fixed-width.
+  - Note: --ff-secondary is referenced in .grocery::placeholder but not defined in this file.
+
+2) Global styles & utility classes
+  - Reset: universal margin/padding remove, box-sizing: border-box.
+  - Body: base font stack, background uses --clr-grey-10, base color --clr-grey-1, line-height and base font-size adjustments.
+  - Typography: h1..h4 and p sizing, responsive adjustments at min-width: 800px.
+  - Generic utilities:
+    - .btn: base button appearance (uppercase, border, shadow, transition).
+    - .section: vertical padding area.
+    - .section-center: centers page content, responsive width behavior.
+  - main: grid center and min-height: 100vh.
+
+3) Grocery List components
+  - Container: .section-center (white card look with shadow and rounded corners; hover increases shadow).
+  - Alerts: .alert, .alert-success, .alert-danger (small inline messages for feedback).
+  - Form elements:
+    - .grocery-form h3: form title style.
+    - .form-control: flex wrapper aligning input and button.
+    - .grocery: input field styling, placeholder color set to --clr-grey-5.
+    - .submit-btn: submit button next to input; uses primary shades, rounded right corners, hover state swaps to main primary.
+     - Implementation note: .submit-btn contains "content: var(--clr-primary-5);" which is not a valid property for standard buttons — likely a leftover and can be removed.
+  - List:
+    - .grocery-container: wrapper for list items.
+    - .grocery-item: flex row with space-between; hover changes bg and text color.
+    - .title: item label; transitions color on hover.
+    - Action buttons: .edit-btn (green tones), .delete-btn (red tones); small, icon-style controls with hover color changes.
+    - .clear-btn: centered control to clear all items; color uses red tones and changes on hover.
+
+Responsive behavior
+- Breakpoints:
+  - min-width: 800px — increases type scale for headings and body.
+  - min-width: 992px — adjusts section-center width.
+- Layout is mobile-first; .section-center uses a max-width and centers content at all sizes.
+
+Accessibility & improvements
+- Focus states: explicit focus styles are not provided for keyboard users; add :focus outlines for .btn, form inputs, and action buttons.
+- Color contrast: verify contrast ratios for text on primary backgrounds, alerts and small text sizes.
+- Reduced motion: consider respecting prefers-reduced-motion for transitions.
+- Missing token: define --ff-secondary (or alter placeholder rule) to avoid unresolved variable.
+- Remove or correct invalid CSS property usage (e.g., content on .submit-btn).
+
+Expected markup (abstract)
+- .section > .section-center
+  - optionally .alert
+  - .grocery-form
+   - h3
+   - .form-control
+    - input.grocery
+    - button.submit-btn
+  - .grocery-container
+   - .grocery-item* (each contains .title and a controls area with .edit-btn, .delete-btn)
+  - button.clear-btn
+
+Customization tips
+- To change theme: edit --clr-primary-* and --clr-grey-* variables.
+- Spacing and roundness: update --spacing and --radius.
+- Shadows & transitions: update --light-shadow, --dark-shadow, --transition.
+
+Maintenance notes
+- Keep design tokens at top for easy theming.
+- Consolidate repeated values into variables when adding new styles.
+- Consider converting to utility-driven classes (Tailwind) if migrating, but preserve tokens for consistency.
+
+End of documentation.
+*/
+/*
 =============== 
 Variables
 ===============
