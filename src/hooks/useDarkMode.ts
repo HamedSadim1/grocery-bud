@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ResolvedTheme, ThemePreference } from '../types';
 
+// SSOT: must stay in sync with the inline script in index.html.
 const STORAGE_KEY = 'grocery-bud:theme';
 
 function readStoredPreference(): ThemePreference {

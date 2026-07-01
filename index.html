@@ -7,6 +7,7 @@
     <title>Groceries App</title>
     <script>
       // Apply theme before React mounts to avoid dark/light flash.
+      // SSOT: key must stay in sync with STORAGE_KEY in src/hooks/useDarkMode.ts.
       (function () {
         try {
           var pref = localStorage.getItem('grocery-bud:theme');

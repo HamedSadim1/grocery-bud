@@ -358,7 +358,7 @@ input {
 
 .btn-primary {
   background: var(--accent);
-  color: #ffffff;
+  color: var(--clr-white);
   box-shadow: 0 6px 18px -8px var(--accent);
 }
 
@@ -432,7 +432,7 @@ input {
 
 .chip.active {
   background: var(--accent);
-  color: #ffffff;
+  color: var(--clr-white);
   border-color: var(--accent);
   box-shadow: 0 4px 14px -6px var(--accent);
 }
@@ -510,7 +510,7 @@ input {
   cursor: pointer;
   display: grid;
   place-items: center;
-  color: #ffffff;
+  color: var(--clr-white);
   font-size: 0.7rem;
   transition:
     background var(--motion),

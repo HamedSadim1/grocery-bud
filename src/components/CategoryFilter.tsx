@@ -1,5 +1,6 @@
 import type { CategoryFilterValue } from '../types';
 import { CATEGORIES } from '../types';
+import CategoryChip from './CategoryChip';
 
 interface CategoryFilterProps {
   active: CategoryFilterValue;
@@ -42,17 +43,12 @@ const CategoryFilter = ({
           All
         </button>
         {CATEGORIES.map((c) => (
-          <button
+          <CategoryChip
             key={c.value}
-            type="button"
-            role="radio"
-            aria-checked={active === c.value}
-            className={`chip ${active === c.value ? 'active' : ''}`}
-            onClick={() => setActive(c.value)}
-          >
-            <span aria-hidden="true">{c.emoji}</span>
-            <span>{c.label}</span>
-          </button>
+            category={c}
+            selected={active === c.value}
+            onSelect={() => setActive(c.value)}
+          />
         ))}
       </div>
     </div>

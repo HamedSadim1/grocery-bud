@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import type { ItemCategory } from '../types';
 import { CATEGORIES } from '../types';
+import CategoryChip from './CategoryChip';
 
 interface AddFormProps {
   defaultCategory?: ItemCategory;
@@ -43,17 +44,12 @@ const AddForm = ({ defaultCategory = 'produce', onAdd }: AddFormProps) => {
         aria-label="Pick a category"
       >
         {CATEGORIES.map((c) => (
-          <button
+          <CategoryChip
             key={c.value}
-            type="button"
-            role="radio"
-            aria-checked={category === c.value}
-            className={`chip chip-${c.value} ${category === c.value ? 'active' : ''}`}
-            onClick={() => setCategory(c.value)}
-          >
-            <span aria-hidden="true">{c.emoji}</span>
-            <span>{c.label}</span>
-          </button>
+            category={c}
+            selected={category === c.value}
+            onSelect={() => setCategory(c.value)}
+          />
         ))}
       </div>
     </form>
