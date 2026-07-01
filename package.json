@@ -18,6 +18,9 @@
     "react-icons": "^5.7.0",
     "react-toastify": "^11.1.0"
   },
+  "overrides": {
+    "conventional-commits-parser": "~6.4.0"
+  },
   "lint-staged": {
     "*.{ts,tsx}": [
       "eslint --fix --report-unused-disable-directives --max-warnings 0",
