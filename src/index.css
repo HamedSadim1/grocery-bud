@@ -1,383 +1,671 @@
 /*
-GROCERY-BUD STYLES — Documentation Comment
+GROCERY-BUD STYLES
+=========================================================================
+File        /src/index.css
+Theme       - Light by default, dark via [data-theme="dark"] on <html>.
+- Token-driven via :root + [data-theme="dark"] custom properties.
+- Single global stylesheet; no CSS modules.
 
-File
-- /src/index.css
-- Purpose: Core styling for the Grocery Bud UI: design tokens (CSS variables), global resets & typography, layout helpers, and component styles for the grocery list form and items.
+Tokens ------------------------------------------------------------------
+- Spacing scale       --space-1 .. --space-8
+- Radius              --r-sm .. --r-pill (legacy --radius alias kept)
+- Motion              --motion-fast / --motion / --motion-slow
+- Shadows + blur      --shadow-soft / --shadow-lift / --blur-soft
+- Light theme palette set inside :root.
+- Dark theme palette   set inside [data-theme="dark"].
 
-Top-level structure
-1) Variables (:root)
-  - Color palette: --clr-primary-1 .. --clr-primary-10 (primary shades), --clr-grey-1 .. --clr-grey-10 (grays), --clr-white, --clr-black, red/green variants.
-  - Common tokens: --transition, --spacing, --radius, --light-shadow, --dark-shadow, --max-width, --fixed-width.
-  - Note: --ff-secondary is referenced in .grocery::placeholder but not defined in this file.
-
-2) Global styles & utility classes
-  - Reset: universal margin/padding remove, box-sizing: border-box.
-  - Body: base font stack, background uses --clr-grey-10, base color --clr-grey-1, line-height and base font-size adjustments.
-  - Typography: h1..h4 and p sizing, responsive adjustments at min-width: 800px.
-  - Generic utilities:
-    - .btn: base button appearance (uppercase, border, shadow, transition).
-    - .section: vertical padding area.
-    - .section-center: centers page content, responsive width behavior.
-  - main: grid center and min-height: 100vh.
-
-3) Grocery List components
-  - Container: .section-center (white card look with shadow and rounded corners; hover increases shadow).
-  - Alerts: .alert, .alert-success, .alert-danger (small inline messages for feedback).
-  - Form elements:
-    - .grocery-form h3: form title style.
-    - .form-control: flex wrapper aligning input and button.
-    - .grocery: input field styling, placeholder color set to --clr-grey-5.
-    - .submit-btn: submit button next to input; uses primary shades, rounded right corners, hover state swaps to main primary.
-     - Implementation note: .submit-btn contains "content: var(--clr-primary-5);" which is not a valid property for standard buttons — likely a leftover and can be removed.
-  - List:
-    - .grocery-container: wrapper for list items.
-    - .grocery-item: flex row with space-between; hover changes bg and text color.
-    - .title: item label; transitions color on hover.
-    - Action buttons: .edit-btn (green tones), .delete-btn (red tones); small, icon-style controls with hover color changes.
-    - .clear-btn: centered control to clear all items; color uses red tones and changes on hover.
-
-Responsive behavior
-- Breakpoints:
-  - min-width: 800px — increases type scale for headings and body.
-  - min-width: 992px — adjusts section-center width.
-- Layout is mobile-first; .section-center uses a max-width and centers content at all sizes.
-
-Accessibility & improvements
-- Focus states: explicit focus styles are not provided for keyboard users; add :focus outlines for .btn, form inputs, and action buttons.
-- Color contrast: verify contrast ratios for text on primary backgrounds, alerts and small text sizes.
-- Reduced motion: consider respecting prefers-reduced-motion for transitions.
-- Missing token: define --ff-secondary (or alter placeholder rule) to avoid unresolved variable.
-- Remove or correct invalid CSS property usage (e.g., content on .submit-btn).
-
-Expected markup (abstract)
-- .section > .section-center
-  - optionally .alert
-  - .grocery-form
-   - h3
-   - .form-control
-    - input.grocery
-    - button.submit-btn
-  - .grocery-container
-   - .grocery-item* (each contains .title and a controls area with .edit-btn, .delete-btn)
-  - button.clear-btn
-
-Customization tips
-- To change theme: edit --clr-primary-* and --clr-grey-* variables.
-- Spacing and roundness: update --spacing and --radius.
-- Shadows & transitions: update --light-shadow, --dark-shadow, --transition.
-
-Maintenance notes
-- Keep design tokens at top for easy theming.
-- Consolidate repeated values into variables when adding new styles.
-- Consider converting to utility-driven classes (Tailwind) if migrating, but preserve tokens for consistency.
-
-End of documentation.
-*/
-/*
-=============== 
-Variables
-===============
+Sections ----------------------------------------------------------------
+1) Reset + base
+2) Tokens + theme variables
+3) App shell + glass card
+4) Header (title + 3-mode theme toggle + stats)
+5) Add form (input + button + category chip picker)
+6) Filters (search + category chip tabs)
+7) List (purchase checkbox, inline edit, action icons)
+8) Empty state
+9) Footer actions
+10) Focus + reduced motion
+11) Responsive
+========================================================================
 */
 
-:root {
-  /* dark shades of primary color*/
-  --clr-primary-1: hsl(205, 86%, 17%);
-  --clr-primary-2: hsl(205, 77%, 27%);
-  --clr-primary-3: hsl(205, 72%, 37%);
-  --clr-primary-4: hsl(205, 63%, 48%);
-  /* primary/main color */
-  --clr-primary-5: hsl(205, 78%, 60%);
-  /* lighter shades of primary color */
-  --clr-primary-6: hsl(205, 89%, 70%);
-  --clr-primary-7: hsl(205, 90%, 76%);
-  --clr-primary-8: hsl(205, 86%, 81%);
-  --clr-primary-9: hsl(205, 90%, 88%);
-  --clr-primary-10: hsl(205, 100%, 96%);
-  /* darkest grey - used for headings */
-  --clr-grey-1: hsl(209, 61%, 16%);
-  --clr-grey-2: hsl(211, 39%, 23%);
-  --clr-grey-3: hsl(209, 34%, 30%);
-  --clr-grey-4: hsl(209, 28%, 39%);
-  /* grey used for paragraphs */
-  --clr-grey-5: hsl(210, 22%, 49%);
-  --clr-grey-6: hsl(209, 23%, 60%);
-  --clr-grey-7: hsl(211, 27%, 70%);
-  --clr-grey-8: hsl(210, 31%, 80%);
-  --clr-grey-9: hsl(212, 33%, 89%);
-  --clr-grey-10: hsl(210, 36%, 96%);
-  --clr-white: #fff;
-  --clr-red-dark: hsl(360, 67%, 44%);
-  --clr-red-light: hsl(360, 71%, 66%);
-  --clr-green-dark: hsl(125, 67%, 44%);
-  --clr-green-light: hsl(125, 71%, 66%);
-  --clr-black: #222;
-  --transition: all 0.3s linear;
-  --spacing: 0.1rem;
-  --radius: 0.25rem;
-  --light-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  --dark-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  --max-width: 1170px;
-  --fixed-width: 620px;
-}
-/*
-=============== 
-Global Styles
-===============
-*/
-
+/* Reset */
 *,
-::after,
-::before {
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
+
+/* Light theme tokens (default) */
+:root {
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+  --space-8: 3rem;
+  /* Radius */
+  --r-sm: 0.375rem;
+  --r-md: 0.75rem;
+  --r-lg: 1rem;
+  --r-xl: 1.25rem;
+  --r-pill: 999px;
+  /* Motion */
+  --motion-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-slow: 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* Shadow + blur */
+  --blur-soft: 16px;
+  --shadow-soft: 0 8px 24px -8px rgba(15, 16, 25, 0.18);
+  --shadow-lift: 0 20px 50px -16px rgba(15, 16, 25, 0.32);
+  /* Palette (light) */
+  --bg-base: #f5f6fb;
+  --bg-grad-1: #c2e9fb;
+  --bg-grad-2: #d4baf7;
+  --bg-grad-3: #ffd6e0;
+  --surface: rgba(255, 255, 255, 0.65);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+  --border: rgba(15, 16, 25, 0.08);
+  --border-strong: rgba(15, 16, 25, 0.18);
+  --text: #1e1f29;
+  --text-soft: #54566b;
+  --text-muted: #9aa0b3;
+  --accent: #6366f1;
+  --accent-soft: rgba(99, 102, 241, 0.12);
+  --accent-ring: rgba(99, 102, 241, 0.28);
+  --accent-hover: #4f46e5;
+  --success: #16a34a;
+  --danger: #e11d48;
+  --danger-soft: rgba(225, 29, 72, 0.1);
+  /* Legacy aliases still referenced elsewhere */
+  --transition: var(--motion);
+  --spacing: 0.1rem;
+  --radius: 0.5rem;
+  --light-shadow: var(--shadow-soft);
+  --dark-shadow: var(--shadow-lift);
+  --clr-white: #fff;
+  --clr-black: #1e1f29;
+}
+
+/* Dark theme tokens */
+[data-theme='dark'] {
+  --bg-base: #0f1019;
+  --bg-grad-1: #1a1c2e;
+  --bg-grad-2: #2a1e44;
+  --bg-grad-3: #391f2c;
+  --surface: rgba(28, 30, 46, 0.62);
+  --surface-strong: rgba(36, 39, 58, 0.94);
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text: #e6e8f0;
+  --text-soft: #b3b6c7;
+  --text-muted: #7c8094;
+  --accent: #818cf8;
+  --accent-soft: rgba(129, 140, 248, 0.18);
+  --accent-ring: rgba(129, 140, 248, 0.34);
+  --accent-hover: #6366f1;
+  --success: #34d399;
+  --danger: #fb7185;
+  --danger-soft: rgba(251, 113, 133, 0.16);
+  --shadow-lift: 0 24px 60px -16px rgba(0, 0, 0, 0.6);
+}
+
+/* Base */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-tab-size: 4;
+  tab-size: 4;
+}
+
 body {
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-    Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background: var(--clr-grey-10);
-  color: var(--clr-grey-1);
+    Cantarell, 'Open Sans', 'Helvetica Neue', system-ui, sans-serif;
+  font-size: 16px;
   line-height: 1.5;
-  font-size: 0.875rem;
+  color: var(--text);
+  background-color: var(--bg-base);
+  background-image:
+    radial-gradient(at 20% 10%, var(--bg-grad-1) 0%, transparent 50%),
+    radial-gradient(at 80% 0%, var(--bg-grad-2) 0%, transparent 50%),
+    radial-gradient(at 50% 100%, var(--bg-grad-3) 0%, transparent 55%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition:
+    background-color var(--motion),
+    color var(--motion);
 }
-ul {
-  list-style-type: none;
-}
-a {
-  text-decoration: none;
-}
+
 h1,
 h2,
 h3,
 h4 {
-  letter-spacing: var(--spacing);
-  text-transform: capitalize;
-  line-height: 1.25;
-  margin-bottom: 0.75rem;
-}
-h1 {
-  font-size: 3rem;
-}
-h2 {
-  font-size: 2rem;
-}
-h3 {
-  font-size: 1.25rem;
-}
-h4 {
-  font-size: 0.875rem;
-}
-p {
-  margin-bottom: 1.25rem;
-  color: var(--clr-grey-5);
-}
-@media screen and (min-width: 800px) {
-  h1 {
-    font-size: 4rem;
-  }
-  h2 {
-    font-size: 2.5rem;
-  }
-  h3 {
-    font-size: 1.75rem;
-  }
-  h4 {
-    font-size: 1rem;
-  }
-  body {
-    font-size: 1rem;
-  }
-  h1,
-  h2,
-  h3,
-  h4 {
-    line-height: 1;
-  }
-}
-.btn {
-  text-transform: uppercase;
-  background: transparent;
-  color: var(--clr-black);
-  padding: 0.375rem 0.75rem;
-  letter-spacing: var(--spacing);
-  display: inline-block;
-  transition: var(--transition);
-  font-size: 0.875rem;
-  border: 2px solid var(--clr-black);
-  cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  border-radius: var(--radius);
-}
-.btn:hover {
-  color: var(--clr-white);
-  background: var(--clr-black);
-}
-/* section */
-.section {
-  padding: 5rem 0;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
 }
 
-.section-center {
-  width: 90vw;
-  margin: 0 auto;
-  max-width: 35rem;
-  margin-top: 8rem;
+p,
+ul {
+  margin: 0;
 }
-@media screen and (min-width: 992px) {
-  .section-center {
-    width: 95vw;
-  }
+
+ul {
+  list-style: none;
+  padding: 0;
 }
-main {
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+/* App shell + glass card */
+.app-shell {
   min-height: 100vh;
   display: grid;
-  place-items: center;
+  place-items: start center;
+  padding: var(--space-8) var(--space-4);
 }
-/*
-=============== 
-Grocery List
-===============
-*/
-.section-center {
-  background: var(--clr-white);
-  border-radius: var(--radius);
-  box-shadow: var(--light-shadow);
-  transition: var(--transition);
-  padding: 2rem;
-}
-.section-center:hover {
-  box-shadow: var(--dark-shadow);
-}
-.alert {
-  margin-bottom: 1rem;
-  height: 1.25rem;
-  display: grid;
-  align-items: center;
-  text-align: center;
-  font-size: 0.7rem;
-  border-radius: 0.25rem;
-  letter-spacing: var(--spacing);
-  text-transform: capitalize;
-}
-.alert-danger {
-  color: #721c24;
-  background: #f8d7da;
-}
-.alert-success {
-  color: #155724;
-  background: #d4edda;
-}
-.grocery-form h3 {
-  color: var(--clr-primary-1);
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-.form-control {
+
+.card {
+  width: 100%;
+  max-width: 640px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: var(--space-6);
+  backdrop-filter: blur(var(--blur-soft)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur-soft)) saturate(180%);
+  box-shadow: var(--shadow-lift);
   display: flex;
-  justify-content: center;
-}
-.grocery {
-  padding: 0.25rem;
-  padding-left: 1rem;
-  background: var(--clr-grey-10);
-  border-top-left-radius: var(--radius);
-  border-bottom-left-radius: var(--radius);
-  border-color: transparent;
-  font-size: 1rem;
-  flex: 1 0 auto;
-  color: var(--clr-grey-5);
-}
-.grocery::placeholder {
-  font-family: var(--ff-secondary);
-  color: var(--clr-grey-5);
-}
-.submit-btn {
-  background: var(--clr-primary-8);
-  border-color: transparent;
-  flex: 0 0 5rem;
-  display: grid;
-  align-items: center;
-  padding: 0.25rem;
-  text-transform: capitalize;
-  letter-spacing: 2px;
-  border-top-right-radius: var(--radius);
-  border-bottom-right-radius: var(--radius);
-  cursor: pointer;
-  content: var(--clr-primary-5);
-  transition: var(--transition);
-  font-size: 0.85rem;
-}
-.submit-btn:hover {
-  background: var(--clr-primary-5);
-  color: var(--clr-white);
+  flex-direction: column;
+  gap: var(--space-5);
 }
 
-.grocery-container {
-  margin-top: 2rem;
+/* Header */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
-.grocery-item {
+.header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
-  transition: var(--transition);
-  padding: 0.25rem 1rem;
-  border-radius: var(--radius);
-  text-transform: capitalize;
+  gap: var(--space-3);
 }
-.grocery-item:hover {
-  color: var(--clr-grey-5);
-  background: var(--clr-grey-10);
-}
-.grocery-item:hover .title {
-  color: var(--clr-grey-5);
-}
-.title {
-  margin-bottom: 0;
-  color: var(--clr-grey-1);
-  letter-spacing: 2px;
-  transition: var(--transition);
-}
-.edit-btn,
-.delete-btn {
-  background: transparent;
-  border-color: transparent;
-  cursor: pointer;
-  font-size: 0.7rem;
-  margin: 0 0.15rem;
-  transition: var(--transition);
-}
-.edit-btn {
-  color: var(--clr-green-light);
-}
-.edit-btn:hover {
-  color: var(--clr-green-dark);
-}
-.delete-btn {
-  color: var(--clr-red-light);
-}
-.delete-btn:hover {
-  color: var(--clr-red-dark);
-}
-.clear-btn {
-  text-transform: capitalize;
-  width: 10rem;
-  height: 1.5rem;
-  display: grid;
+
+.title-main {
+  display: flex;
   align-items: center;
-  background: transparent;
-  border-color: transparent;
-  color: var(--clr-red-light);
-  margin: 0 auto;
-  font-size: 0.85rem;
-  letter-spacing: var(--spacing);
-  cursor: pointer;
-  transition: var(--transition);
-  margin-top: 1.25rem;
+  gap: var(--space-2);
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
 }
-.clear-btn:hover {
-  color: var(--clr-red-dark);
+
+.title-emoji {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 2px 6px rgba(99, 102, 241, 0.35));
+}
+
+.theme-toggle {
+  display: inline-flex;
+  background: var(--accent-soft);
+  border-radius: var(--r-pill);
+  padding: 4px;
+  gap: 2px;
+}
+
+.theme-btn {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  transition:
+    background var(--motion),
+    color var(--motion),
+    transform var(--motion-fast);
+}
+
+.theme-btn:hover {
+  color: var(--text);
+}
+
+.theme-btn.active {
+  background: var(--surface-strong);
+  color: var(--accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.theme-btn:active {
+  transform: scale(0.94);
+}
+
+.stats {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+}
+
+.stats-pill {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+}
+
+.stats-divider {
+  color: var(--text-muted);
+}
+
+.stats-total {
+  color: var(--text-soft);
+}
+
+/* Add form */
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.add-form-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--surface-strong);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: 1rem;
+  outline: none;
+  transition:
+    border-color var(--motion),
+    box-shadow var(--motion);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-ring);
+}
+
+.input-search {
+  width: 100%;
+}
+
+.input-inline {
+  background: transparent;
+  border-radius: var(--r-sm);
+  border-color: var(--accent);
+  padding: 4px 8px;
+  font-size: 0.95rem;
+}
+
+.btn {
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  padding: var(--space-3) var(--space-4);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+  transition:
+    transform var(--motion-fast),
+    background var(--motion),
+    color var(--motion),
+    box-shadow var(--motion);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 6px 18px -8px var(--accent);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-soft);
+  border-color: var(--border);
+}
+
+.btn-ghost:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: transparent;
+}
+
+.btn-danger-ghost {
+  background: transparent;
+  color: var(--danger);
+  border-color: transparent;
+}
+
+.btn-danger-ghost:hover {
+  background: var(--danger-soft);
+}
+
+.btn-text {
+  display: inline;
+}
+
+/* Category chips (used in both add form and filter row) */
+.add-form-cats,
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
+  color: var(--text-soft);
+  border-radius: var(--r-pill);
+  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition:
+    background var(--motion-fast),
+    color var(--motion-fast),
+    border-color var(--motion-fast),
+    transform var(--motion-fast);
+}
+
+.chip:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.chip.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 4px 14px -6px var(--accent);
+}
+
+.chip:active {
+  transform: scale(0.96);
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.search-wrap {
+  position: relative;
+}
+
+/* List */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.list-item {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--space-3) var(--space-4);
+  transition:
+    transform var(--motion),
+    border-color var(--motion),
+    background var(--motion);
+  animation: item-in var(--motion-slow) cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.list-item:hover {
+  border-color: var(--accent-ring);
+  transform: translateY(-1px);
+}
+
+.list-item.purchased {
+  background: transparent;
+  border-style: dashed;
+}
+
+.list-item.purchased .item-name {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+@keyframes item-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-size: 0.7rem;
+  transition:
+    background var(--motion),
+    border-color var(--motion);
+}
+
+.check:hover {
+  border-color: var(--accent);
+}
+
+.list-item.purchased .check {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.cat-emoji {
+  font-size: 1.15rem;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+}
+
+.item-name {
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  color: var(--text-muted);
+  transition:
+    background var(--motion-fast),
+    color var(--motion-fast);
+}
+
+.btn-icon:hover {
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
+.btn-icon.edit:hover {
+  color: var(--accent);
+}
+
+.btn-icon.delete:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.btn-icon.save:hover {
+  color: var(--success);
+  background: rgba(22, 163, 74, 0.12);
+}
+
+.btn-icon.cancel:hover {
+  color: var(--text-soft);
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) 0;
+  text-align: center;
+  color: var(--text-muted);
+  animation: item-in var(--motion-slow) ease-out;
+}
+
+.empty-emoji {
+  font-size: 2.6rem;
+  filter: saturate(0.7);
+}
+
+.empty-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.empty-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-soft);
+}
+
+/* Footer actions */
+.footer-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+/* Focus (accessibility) */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Responsive (mobile-first) */
+@media (max-width: 640px) {
+  .app-shell {
+    padding: var(--space-5) var(--space-3);
+  }
+  .card {
+    padding: var(--space-5);
+    border-radius: var(--r-lg);
+  }
+  .title-main {
+    font-size: 1.4rem;
+  }
+  .add-form-row {
+    flex-wrap: wrap;
+  }
+  .input {
+    flex: 1 1 100%;
+  }
+  .add-form-row .btn-primary {
+    flex: 1 0 100%;
+  }
+  .list-item {
+    padding: var(--space-3);
+    grid-template-columns: auto auto 1fr auto;
+    gap: var(--space-2);
+  }
 }

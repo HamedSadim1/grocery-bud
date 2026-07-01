@@ -1,158 +1,169 @@
-import { useState, useEffect } from 'react';
-import { ILIST } from './types';
+import { useMemo, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import type { Item, ItemCategory } from './types';
+import { useLocalStorage } from './hooks/useLocalStorage';
+import { useDarkMode } from './hooks/useDarkMode';
+import Header from './components/Header';
+import AddForm from './components/AddForm';
+import CategoryFilter from './components/CategoryFilter';
+import type { CategoryFilterValue } from './types';
 import List from './components/List';
+import EmptyState from './components/EmptyState';
 
 /**
- * Retrieves the list from the local storage.
- * If the list exists, it parses and returns it as an array.
- * If the list doesn't exist, it returns an empty array.
- * @returns {Array} The list retrieved from the local storage.
+ * Top-level Grocery Bud shell.
+ * - Persists the items list and theme preference to localStorage.
+ * - Provides add / edit / delete / purchase-toggle / clear flows.
+ * - Filters by name (search) and category chip.
  */
-const getLocalStorage = () => {
-  const list = localStorage.getItem('list');
-  if (list) {
-    return JSON.parse(localStorage.getItem('list') || '[]');
-  } else {
-    return [];
-  }
-};
-/**
- * The main component of the Grocery Bud application.
- * Manages the state of the grocery list and provides functionality for adding, editing, and deleting items.
- */
-
 function App() {
-  const [name, setName] = useState<string>('');
-  const [list, setList] = useState<ILIST[]>(getLocalStorage);
-  const [edit, setEdit] = useState<boolean>(false);
-  const [id, setId] = useState<string>('');
+  const [items, setItems] = useLocalStorage<Item[]>('grocery-bud:v2', []);
+  const { preference, setPreference, resolved } = useDarkMode();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] =
+    useState<CategoryFilterValue>('all');
 
-  // const [alert, setAlert] = useState<Errors>({
-  //   show: false,
-  //   msg: "",
-  //   type: "",
-  // });
-
-  // useEffect hook is used to perform side effects in functional components.
-  // It takes a callback function as the first argument and an array of dependencies as the second argument.
-  // The callback function will be executed whenever the dependencies change.
-
-  useEffect(() => {
-    // When the 'list' variable changes, update the localStorage with the updated 'list' value.
-    localStorage.setItem('list', JSON.stringify(list));
-
-    // Retrieve the updated 'list' value from localStorage and update the 'local' state with it.
-    // If there is no value in localStorage, default to an empty array.
-
-    // The [list] dependency array ensures that this effect only runs when the 'list' variable changes.
-    // If the 'list' variable remains the same, this effect will not be executed again.
-  }, [list]);
-  //This code block is using the useEffect hook to store and retrieve data from the browser's localStorage. It updates the localStorage whenever the list variable changes, and it also initializes the local state with the value from localStorage on component mount
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!name) {
-      // display alert
-      // showAlert(true, "danger", "please enter value");
-      toast.error('Please enter value', {
-        position: 'top-center',
-      });
-    } else if (name && edit) {
-      // deal with edit
-      setList(
-        list.map((item) => {
-          if (item.id === id) {
-            return { ...item, name };
-          }
-          return item;
-        }),
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return items
+      .filter(
+        (item) => activeCategory === 'all' || item.category === activeCategory,
+      )
+      .filter((item) => q === '' || item.name.toLowerCase().includes(q))
+      .sort((a, b) =>
+        a.purchased === b.purchased
+          ? a.createdAt - b.createdAt
+          : a.purchased
+            ? 1
+            : -1,
       );
-      setName('');
-      setEdit(false);
-      setId('');
-      // showAlert(true, "success", "value changed");
-    } else {
-      // show alert
-      // showAlert(true, "success", "item added to the list");
-      toast.success(`Item added to the list: ${name}`, {
-        position: 'top-center',
-      });
-      const newItem = { id: new Date().getTime().toString(), name };
-      setList((items) => [...items, newItem]);
+  }, [items, searchQuery, activeCategory]);
 
-      setName('');
-    }
+  const remaining = useMemo(
+    () => items.filter((i) => !i.purchased).length,
+    [items],
+  );
+
+  const toastBase = {
+    theme: resolved,
+    position: 'bottom-right' as const,
+    autoClose: 1800,
+  };
+
+  const handleAdd = (name: string, category: ItemCategory) => {
+    const newItem: Item = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name,
+      category,
+      purchased: false,
+      createdAt: Date.now(),
+    };
+    setItems((prev) => [...prev, newItem]);
+    toast.success(`Added “${name}”`, toastBase);
+  };
+
+  const handleTogglePurchased = (id: string) => {
+    setItems((prev) =>
+      prev.map((it) =>
+        it.id === id ? { ...it, purchased: !it.purchased } : it,
+      ),
+    );
+  };
+
+  const handleUpdate = (id: string, name: string) => {
+    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, name } : it)));
+    toast.info(`Updated to “${name}”`, toastBase);
   };
 
   const handleDelete = (id: string) => {
-    // showAlert(true, "danger", "item removed");
-    toast.error('Item removed', {
-      position: 'top-center',
-    });
-
-    setList(list.filter((item) => item.id !== id));
+    const item = items.find((it) => it.id === id);
+    setItems((prev) => prev.filter((it) => it.id !== id));
+    if (item) toast(`Removed “${item.name}”`, toastBase);
   };
 
-  const editItem = (id: string) => {
-    const specificItem = list.find((iteml) => iteml.id === id);
-    setEdit(true);
-    setId(id);
-    setName(specificItem?.name || '');
+  const handleClearPurchased = () => {
+    const count = items.filter((i) => i.purchased).length;
+    if (count === 0) return;
+    setItems((prev) => prev.filter((it) => !it.purchased));
+    toast(
+      `Cleared ${count} completed item${count === 1 ? '' : 's'}`,
+      toastBase,
+    );
   };
 
-  // const showAlert = (
-  //   show: boolean = false,
-  //   type: string = "",
-  //   msg: string = ""
-  // ) => {
-  //   setAlert({ show, type, msg });
-  // };
-
-  const clearList = () => {
-    // showAlert(true, "danger", "empty list");
-    toast.error('List is empty', {
-      position: 'top-center',
-    });
-    setList([]);
+  const handleClearAll = () => {
+    if (items.length === 0) return;
+    setItems([]);
+    toast.error('List cleared', toastBase);
   };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setActiveCategory('all');
+  };
+
+  const hasFilter = searchQuery.trim() !== '' || activeCategory !== 'all';
+  const hasPurchased = items.some((i) => i.purchased);
 
   return (
     <>
-      <ToastContainer />
-      <section className="section-center">
-        <form className="grocery-form" onSubmit={handleSubmit}>
-          {/* {alert?.show && (
-            <Alert alert={alert} showAlert={showAlert} list={list} />
-          )} */}
-          <h3>grocery bud</h3>
-          <div className="form-control">
-            <input
-              type="text"
-              className="grocery"
-              placeholder="e.g. eggs"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+      <ToastContainer {...toastBase} hideProgressBar />
+      <div className="app-shell">
+        <div className="card">
+          <Header
+            preference={preference}
+            setPreference={setPreference}
+            remaining={remaining}
+            total={items.length}
+          />
+
+          <AddForm onAdd={handleAdd} />
+
+          {items.length > 0 && (
+            <CategoryFilter
+              active={activeCategory}
+              setActive={setActiveCategory}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
             />
-            <button type="submit" className="submit-btn">
-              {edit ? 'edit' : 'submit'}
-            </button>
-          </div>
-        </form>
-        {list.length > 0 && (
-          <div className="grocery-container">
-            <List
-              items={list}
-              handleDelete={handleDelete}
-              handleEdit={editItem}
-            />
-            <button onClick={clearList} className="clear-btn">
-              clear items
-            </button>
-          </div>
-        )}
-      </section>
+          )}
+
+          <List
+            items={filtered}
+            onTogglePurchased={handleTogglePurchased}
+            onDelete={handleDelete}
+            onUpdate={handleUpdate}
+          />
+
+          <EmptyState
+            hasItems={items.length > 0}
+            hasFilter={hasFilter}
+            onClearFilters={hasFilter ? clearFilters : undefined}
+          />
+
+          {items.length > 0 && (
+            <div className="footer-actions">
+              {hasPurchased && (
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={handleClearPurchased}
+                >
+                  Clear completed
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn btn-danger-ghost"
+                onClick={handleClearAll}
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </>
   );
 }
