@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { ILIST } from "./types";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import List from "./components/List";
+import { useState, useEffect } from 'react';
+import { ILIST } from './types';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import List from './components/List';
 
 /**
  * Retrieves the list from the local storage.
@@ -11,9 +11,9 @@ import List from "./components/List";
  * @returns {Array} The list retrieved from the local storage.
  */
 const getLocalStorage = () => {
-  const list = localStorage.getItem("list");
+  const list = localStorage.getItem('list');
   if (list) {
-    return JSON.parse(localStorage.getItem("list") || "[]");
+    return JSON.parse(localStorage.getItem('list') || '[]');
   } else {
     return [];
   }
@@ -24,10 +24,10 @@ const getLocalStorage = () => {
  */
 
 function App() {
-  const [name, setName] = useState<string>("");
+  const [name, setName] = useState<string>('');
   const [list, setList] = useState<ILIST[]>(getLocalStorage);
   const [edit, setEdit] = useState<boolean>(false);
-  const [id, setId] = useState<string>("");
+  const [id, setId] = useState<string>('');
 
   // const [alert, setAlert] = useState<Errors>({
   //   show: false,
@@ -41,7 +41,7 @@ function App() {
 
   useEffect(() => {
     // When the 'list' variable changes, update the localStorage with the updated 'list' value.
-    localStorage.setItem("list", JSON.stringify(list));
+    localStorage.setItem('list', JSON.stringify(list));
 
     // Retrieve the updated 'list' value from localStorage and update the 'local' state with it.
     // If there is no value in localStorage, default to an empty array.
@@ -56,8 +56,8 @@ function App() {
     if (!name) {
       // display alert
       // showAlert(true, "danger", "please enter value");
-      toast.error("Please enter value", {
-        position: "top-center",
+      toast.error('Please enter value', {
+        position: 'top-center',
       });
     } else if (name && edit) {
       // deal with edit
@@ -67,29 +67,29 @@ function App() {
             return { ...item, name };
           }
           return item;
-        })
+        }),
       );
-      setName("");
+      setName('');
       setEdit(false);
-      setId("");
+      setId('');
       // showAlert(true, "success", "value changed");
     } else {
       // show alert
       // showAlert(true, "success", "item added to the list");
       toast.success(`Item added to the list: ${name}`, {
-        position: "top-center",
+        position: 'top-center',
       });
       const newItem = { id: new Date().getTime().toString(), name };
       setList((items) => [...items, newItem]);
 
-      setName("");
+      setName('');
     }
   };
 
   const handleDelete = (id: string) => {
     // showAlert(true, "danger", "item removed");
-    toast.error("Item removed", {
-      position: "top-center",
+    toast.error('Item removed', {
+      position: 'top-center',
     });
 
     setList(list.filter((item) => item.id !== id));
@@ -99,7 +99,7 @@ function App() {
     const specificItem = list.find((iteml) => iteml.id === id);
     setEdit(true);
     setId(id);
-    setName(specificItem?.name || "");
+    setName(specificItem?.name || '');
   };
 
   // const showAlert = (
@@ -112,8 +112,8 @@ function App() {
 
   const clearList = () => {
     // showAlert(true, "danger", "empty list");
-    toast.error("List is empty", {
-      position: "top-center",
+    toast.error('List is empty', {
+      position: 'top-center',
     });
     setList([]);
   };
@@ -136,7 +136,7 @@ function App() {
               onChange={(e) => setName(e.target.value)}
             />
             <button type="submit" className="submit-btn">
-              {edit ? "edit" : "submit"}
+              {edit ? 'edit' : 'submit'}
             </button>
           </div>
         </form>

@@ -1,5 +1,5 @@
-import { FaEdit, FaTrash } from "react-icons/fa";
-import { ILIST } from "../types";
+import { FaEdit, FaTrash } from 'react-icons/fa';
+import { ILIST } from '../types';
 
 interface ListProps {
   items: ILIST[];

@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { Errors, ILIST } from "../types";
+import { useEffect } from 'react';
+import { Errors, ILIST } from '../types';
 
 interface AlertProps {
   alert: Errors;
@@ -16,9 +16,9 @@ interface AlertProps {
 const Alert = ({ alert, showAlert, list }: AlertProps) => {
   const { type, msg } = alert;
   useEffect(() => {
-    console.log("alert");
+    console.log('alert');
     const timeout = setTimeout(() => {
-      showAlert(false, "", "");
+      showAlert(false, '', '');
     }, 3000);
     return () => clearTimeout(timeout);
   }, [list, showAlert]);
